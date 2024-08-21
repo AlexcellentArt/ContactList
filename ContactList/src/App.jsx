@@ -16,6 +16,7 @@ export default function App() {
       ) : (
         <ContactList setSelectedContactId={setSelectedContactId} />
       )}
+      {selectedContactId ? <button onClick={() => setSelectedContactId(null)}>Return</button> : null}
     </>
   );
 }

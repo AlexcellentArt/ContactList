@@ -28,14 +28,14 @@ function ContactList({ setSelectedContactId }) {
     fetchContacts();
   }, []);
   return (
-    <table>
+    <table className="contactList">
       <thead>
         <tr>
           <th colSpan="3">Contact List</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr className="fields">
           <td>Name</td>
           <td>Email</td>
           <td>Phone</td>
