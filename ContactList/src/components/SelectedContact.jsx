@@ -80,25 +80,28 @@ export default function SelectedContact({
     });
     return compiled;
   }
-  function parseV2(jsonObj, header = "", prevDepth = -1) {
+  function parseV2(jsonObj, header = "", prevDepth = 1) {
     const level = {
       header: header,
       pairs: [],
       depth: prevDepth + 1,
       sublevels: [],
-      ordered:[]
+      ordered: [],
+      length: 0
     };
-    console.log(Object.keys(jsonObj).fl)
+    console.log(Object.keys(jsonObj).fl);
     Object.keys(jsonObj).forEach((key) => {
       const obj = jsonObj[key];
       // ordered keeps track of the order the arrays should be resorted in once converted to headers
       if (obj.constructor === Object) {
         const res = parseV2(obj, key, level.depth);
         level.sublevels.push(res);
-        level.ordered.push(`s.${level.sublevels.length-1}`)
+        level.ordered.push(`s.${level.sublevels.length - 1}`);
+        level.length += res.length;
       } else {
         level.pairs.push({ key: key, value: jsonObj[key] });
-        level.ordered.push(`p.${level.pairs.length-1}`)
+        level.ordered.push(`p.${level.pairs.length - 1}`);
+        level.length += 1;
       }
     });
     // if (level.sublevels.length){
@@ -151,58 +154,99 @@ export default function SelectedContact({
     }
     return lowestDepth;
   }
-  function makeRows(level, deepestPoint) {
-    const rows = { headers: [], data: [] };
+  function makeColumns(level, deepestPoint) {
+    const columns = { rows: {}, headers: [], data: [] };
     // get sub level rows first
-    if (level.sublevels.length) {
-      level.sublevels.forEach((lev) => {
-        if (lev.header) {
-          rows.headers.push(
-            <th
-            rowSpan={deepestPoint - lev.depth}
-              colSpan={lev.pairs.length}
-            >
-              {lev.header}
-            </th>
-          );
-        }
-        const deeperRows = makeRows(lev, deepestPoint);
-        // flatten
-        rows.headers.push(<tr>{deeperRows.headers}</tr>)
-        // rows.data.push(<tr>{deeperRows.data}</tr>)
-        // rows.headers = [...rows.headers, ...deeperRows.headers];
-        rows.data = [...deeperRows.data,...rows.data];
-      });
+    // level.ordered.forEach((code) =>
+    // { const guide = code.split(".")
+    //   if (guide[0] === "p")
+    //   {
+    //     // get pair by index
+    //     rows.headers.push(<th rowSpan={deepestPoint - level.depth}>{obj.key}</th>);
+    //     rows.data.push(<td>{obj.value}</td>);
+
+    //   }
+
+    // })
+    columns.rows[level.depth] = [];
+    if (level.header != "") {
+      columns.rows[level.depth - 1] = [
+        <th
+          // rowSpan={deepestPoint - level.depth}
+          colSpan={level.length}
+          // scope="col"
+        >
+          {level.header}
+        </th>,
+      ];
     }
-    // make header first and adjust it's span
     // then make headers and data
     level.pairs.forEach((obj) => {
-      rows.headers.unshift(<th rowSpan={deepestPoint - level.depth}>{obj.key}</th>);
-      rows.data.unshift(<td>{obj.value}</td>);
+      columns.rows[level.depth].push(
+        <th rowSpan={deepestPoint - level.depth +1}>
+          {obj.key}
+        </th>
+      );
+      columns.data.push(<td>{obj.value}</td>);
     });
+    // make header first and adjust it's span
+    if (level.sublevels.length) {
+      level.sublevels.forEach((lev) => {
+        const deeperRows = makeColumns(lev, deepestPoint);
+        Object.keys(deeperRows.rows).forEach((key) => {
+          console.log(key);
+          console.log(deeperRows.rows[key]);
+          if (key in columns.rows) {
+            columns.rows[key] = [...columns.rows[key], ...deeperRows.rows[key]];
+          } else {
+            columns.rows[key] = deeperRows.rows[key];
+          }
+        });
+        // flatten
+        // rows.headers.push(...deeperRows.headers)
+        // columns.headers.push(...deeperRows.headers)
+
+        // rows.data.push(<tr>{deeperRows.data}</tr>)
+        // rows.headers = [...rows.headers, ...deeperRows.headers];
+        columns.data.push(...deeperRows.data);
+      });
+    }
     // const level = {header:header,pairs:[],depth:prevDepth + 1,sublevels:[]}
-    return rows;
+    return columns;
   }
   function makeTable() {
     // parse contact then sort into headers,sub headers and body
-    if (contact == {}){
-      console.log("ERRORR")
-      return
+    if (contact == {}) {
+      return;
     }
-    console.log(contact)
+    console.log(contact);
     const parsed = parseV2(contact);
-    console.log("ARPED");
     // deepest point is determined so that the col span can be calculated
     const deepestPoint = determineDeepestPoint(parsed);
     console.log("Deepest point is " + deepestPoint);
     console.log(parsed);
-    console.log(makeRows(parsed, deepestPoint));
-    const rows =  makeRows(parsed, deepestPoint);
-    return <table><thead>{...rows.headers}</thead><tbody>{...rows.data}</tbody></table>
-            {/* <thead>{[sorted.headers.main, ...sorted.headers.sub]}</thead>
+    console.log(makeColumns(parsed, deepestPoint));
+    const columns = makeColumns(parsed, deepestPoint);
+    const keys = Object.keys(columns.rows);
+    console.log(columns.rows)
+    // add in baseline headers in their appropriate spot
+    columns.rows[keys[0]] = [...columns.headers,...columns.rows[keys[0]]]
+    console.log("KEYS");
+    console.log(keys);
+    const rows = keys.map(((key) => {return <tr rowSpan={2}>{...columns.rows[key]}</tr>}) )
+    console.log(rows)
+    return (
+      <table>
+        <thead>{rows}</thead>
+        <tbody>{...columns.data}</tbody>
+      </table>
+    );
+    {
+      /* <thead>{[sorted.headers.main, ...sorted.headers.sub]}</thead>
         <tbody>
           <tr>{sorted.body}</tr>
-        </tbody> */}
+        </tbody> */
+    }
     // make top level last
     // const sorted = sortParsed(parse(contact));
     // setHeaders(pair[0])

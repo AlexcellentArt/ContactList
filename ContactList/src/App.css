@@ -50,9 +50,7 @@
 }
 
 .contactList {
-  border-collapse: separate;
   background-color: black;
-  /* margin-inline: 0; */
   /* background: linear-gradient(in oklab, var(--mid-light) 0%, #000 100%); */
   thead{
     background-color: var(--darkest-color);
@@ -65,8 +63,8 @@
   tbody {
     background-color:  var(--mid-color);
     height: 100%;
-    
-    tr{
+    border-collapse: collapse;
+    .values{
       height: 100%;
       background: linear-gradient(in oklab, var(--mid-color) 0%, var(--mid-dark-color) 100%);
       border: 0.1em solid var(--mid-dark-color);
