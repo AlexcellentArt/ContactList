@@ -1,5 +1,6 @@
 #root {
   max-width: 1280px;
+  height: max-content;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -92,8 +93,14 @@
     background-color: #7A8450;
   }
   td{
-    background-color: #AEBD93;
-    
+    height: 100%;
+    background: linear-gradient(in oklab, var(--mid-color) 0%, var(--mid-dark-color) 100%);
+    border: 0.1em solid var(--mid-dark-color);
+  }
+  td:hover{
+    background-color: var(--light-color);
+    background: linear-gradient(to top in oklab, var(--accent-color) 0%, var(--light-color) 100%);
+    color: #000;
   }
   
 }
@@ -112,4 +119,12 @@
 }
 tr{
   height: 100%;
+}
+button {
+  background: linear-gradient(in oklab, var( --darkest-lighter-color) 0%, var(--darkest-color) 100%);
+  border: 0.1em solid var(--mid-dark-color);
+}
+button:hover {
+  color: #ffcc74;
+  /* border: 0.2em #ffcc74 solid; */
 }
